@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-# Part of Open Architechts Consulting sprl. See LICENSE file for full copyright and licensing details.
+# Part of Open Architechts Consulting sprl. See LICENSE file for full copyright and licensing details. # noqa
+# Copyright 2019 Coop IT Easy SCRLfs
 
 from openerp import api, fields, models, _, SUPERUSER_ID
 
@@ -22,6 +23,49 @@ class StockMove(models.Model):
     brew_number = fields.Integer(
         string="Brew number",
         readonly=True)
+    is_internal = fields.Boolean(
+        string="Is Internal",
+        compute="_compute_is_internal")
+
+    @api.multi
+    @api.depends('location_id', 'location_dest_id')
+    def _compute_is_internal(self):
+
+        for move in self:
+            move.is_internal = (
+                    move.location_id.usage == 'internal'
+                    and move.location_dest_id.usage == 'internal'
+            )
+
+    @api.model
+    def _compute_product_domain(self, is_internal):
+        if is_internal:
+            domain = [('type', 'in', ['product', 'consu']),
+                      ('sale_ok', '=', True)]
+        else:
+            domain = [('type', 'in', ['product', 'consu'])]
+
+        return domain
+
+    @api.onchange('is_internal')
+    def onchange_is_internal(self):
+        domain = self._compute_product_domain(self.is_internal)
+        return {'value': [], 'domain': {'product_id': domain}}
+
+    @api.model
+    def fields_view_get(self, view_id=None, view_type='form',
+                        toolbar=False, submenu=False):
+        result = (
+            super(StockMove, self)
+            .fields_view_get(view_id, view_type,
+                             toolbar=toolbar, submenu=submenu)
+        )
+        if 'fields' in result and 'product_id' in result['fields']:
+            result['fields']['product_id']['domain'] = (
+                self._compute_product_domain(
+                    result['fields'].get('is_internal', False))
+            )
+        return result
 
 
 class StockWarehouseOrderpoint(models.Model):
