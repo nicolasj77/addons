@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <template id="assets_backend" name="default_tree_number_line" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/tree_default_number_lines/static/src/js/list_view.js"></script>
+            </xpath>
+        </template>
+    </data>
+</openerp>
