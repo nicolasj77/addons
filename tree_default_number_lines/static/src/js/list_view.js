@@ -3,7 +3,7 @@ odoo.define('web.ListView.inherited', function (require) {
 
     var View = require('web.ListView');
 
-    var ListView = View.include({
+    var ListView = View.extend({
         init: function (parent, dataset, view_id, options) {
                 this._super(parent);
                 this.set_default_options(options);
